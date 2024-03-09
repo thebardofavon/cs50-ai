@@ -1,14 +1,12 @@
 """
 Tic Tac Toe Player
 """
-
 import math
 from copy import deepcopy
 
 X = "X"
 O = "O"
 EMPTY = None
-
 
 def initial_state():
     """
@@ -18,7 +16,6 @@ def initial_state():
             [EMPTY, EMPTY, EMPTY],
             [EMPTY, EMPTY, EMPTY]]
 
-
 def player(board):
     """
     Returns player who has the next turn on a board.
@@ -27,6 +24,8 @@ def player(board):
         return X
     if terminal(board):
         return EMPTY
+    x_count = 0
+    o_count = 0
     for x in range(3):
         for y in range(3):
             if board[x][y] == X:
@@ -44,13 +43,12 @@ def actions(board):
     Returns set of all possible actions (i, j) available on the board.
     """
     possible_actions = set()
-    for i in board:
-        for j in board[i]:
+    for i in range(3):
+        for j in range(3):
             if board[i][j] == EMPTY:
                 possible_actions.add((i, j))
 
     return possible_actions
-
 
 def result(board, action):
     """
@@ -63,38 +61,35 @@ def result(board, action):
         new_board[i][j] = player(new_board)
     else:
         raise Exception
-    
     return new_board
-
-
 
 def winner(board):
     """
     Returns the winner of the game, if there is one.
     """
     for row in board:
-        if row == O*3:
+        if row == [O]*3:
             return O
-        elif row == X*3:
+        elif row == [X]*3:
             return X
     
     for i in range(3):
         column = [board[x][i] for x in range(3)]
-        if column == O*3:
+        if column == [O]*3:
             return O
-        elif column == X*3:
+        elif column == [X]*3:
             return X
 
     d1 = [board[i][i] for i in range(3)]
-    if d1 == O*3:
+    if d1 == [O]*3:
         return O
-    elif d1 == X*3:
+    elif d1 == [X]*3:
         return X
     
     d2 = [board[i][2-i] for i in range(3)]           
-    if d2 == O*3:
+    if d2 == [O]*3:
         return O
-    elif d2 == X*3:
+    elif d2 == [X]*3:
         return X
     
     return None
@@ -124,20 +119,44 @@ def utility(board):
         return -1
     else:
         return 0
+    
+def max_value(board):
+    v = -math.inf
+    if terminal(board):
+        return utility(board)
+    for action in actions(board):
+        v = max(v, min_value(result(board, action)))
+    return v
 
+def min_value(board):
+    v = math.inf
+    if terminal(board):
+        return utility(board)
+    for action in actions(board):
+        v = min(v, max_value(result(board, action)))
+    return v
 
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
+    current_player = player(board)
+    if terminal(board):
+        return None
     
+    if current_player == X:
+        moves = []
+        for action in actions(board):
+            moves.append([min_value(result(board, action)), action])
+        return sorted(moves, key=lambda x: x[0], reverse=True)[0][1] # returns the action
+    else:
+        moves = []
+        for action in actions(board):
+            moves.append([max_value(result(board, action)), action])
+        return sorted(moves, key=lambda x: x[0])[0][1] # returns the action
 
 def isOdd(num):
-    if num % 2 == 0:
-        return False
-    return True
+    return num % 2 != 0
 
 def isEven(num):
-    if num % 2 != 0:
-        return False
-    return True
+    return num % 2 == 0
